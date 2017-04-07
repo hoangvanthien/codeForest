@@ -1,54 +1,46 @@
-#include <bits/stdc++.h>
+#include "bits/stdc++.h"
+
 using namespace std;
 
-#define FOR(i,x,y) for(int i = (x); i<=(y); ++i)
-#define DFOR(i,x,y) for(int i = (x); i>=(y); --i)
-#define db(x) cout << #x << " = " << x << endl;
-#define forit(it, var) for(__typeof(var.begin()) it = var.begin(); it!=var.end(); ++it)
-#define forrit(it, var) for(__typeof(var.rbegin()) it = var.rbegin(); it!=var.rend(); ++it)
-#define pb push_back
-#define pf push_front
-#define mp make_pair
-#define F first
-#define S second
-#define oo 1e9+7
-#define II pair<int,int>
-#define LL long long
-#define lb lower_bound
-#define ub upper_bound
-#define LAST(x) (int)x.size()-1
+const int N = 205;
+const int oo = 1000000007;
 
-const int N = 105;
-int visited[N], ass[N],m,n,t;
+int n, m, match[N], mark[N];
 vector<int> dsk[N];
 
-bool visit(int u) { // u in X
-    if (visited[u] == t) return false; // u has been visited this time
-    else visited[u] = t;
-    forit(it, dsk[u]) if (ass[*it] == 0 || visit(ass[*it]))
-    // *it is in Y. If it's free or we can find an augmenting path from ass[*it] (in X)
-    {
-        ass[*it] = u; // change match
-        return true; // found augmenting path
+bool dfs(int p, int u) {
+    if (mark[u]) return false;
+    mark[u] = true;
+    for (int v : dsk[u]) {
+        if (v != p) {
+            if (!match[v] || dfs(v, match[v])) {
+                match[v] = u;
+                return true;
+            }
+        }
     }
-    return false; // can't found an augmenting path from u
+    return false;
 }
 
 int main() {
-	// freopen(".inp", "r", stdin);
-	// freopen(".out", "w", stdout);
-	#ifndef ONLINE_JUDGE
-	freopen("input.inp", "r", stdin);
-	#endif // ONLINE_JUDGE
-	scanf("%d %d", &m, &n);
-	int x,y;
-	while (scanf("%d %d", &x, &y) != EOF) dsk[x].pb(y);
-	int cnt = 0;
-	FOR(i,1,m) {
-        ++t;
-        cnt += visit(i);
-	}
-	printf("%d\n", cnt);
-	FOR(i,1,n) if (int v = ass[i]) // v != 0
-        printf("%d %d\n", v, i);
+#ifndef ONLINE_JUDGE
+//    freopen("input.inp", "r", stdin);
+    freopen("input.inp", "r", stdin);
+//    freopen("output.out", "w", stdout);
+#endif // ONLINE_JUDGE
+    scanf("%d%d", &m, &n);
+    for (int x, y; ~scanf("%d%d", &x, &y); dsk[x].push_back(y + m), dsk[y + m].push_back(x));
+    for (int i = 1; i <= m; ++i) {
+        memset(mark, 0, sizeof mark);
+        dfs(0, i);
+    }
+    vector<pair<int, int> > answer;
+    for (int i = 1; i <= n; ++i)
+        if (match[i + m]) answer.push_back(make_pair(match[i + m], i));
+    printf("%d\n", (int) answer.size());
+    for (pair<int, int> p : answer) printf("%d %d\n", p.first, p.second);
+#ifndef ONLINE_JUDGE
+    cout << endl;
+    cerr << "Time elapsed: " << 1.0 * clock() / CLOCKS_PER_SEC << " s.\n";
+#endif
 }

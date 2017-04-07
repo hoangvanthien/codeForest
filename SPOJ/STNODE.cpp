@@ -1,110 +1,69 @@
-#include <bits/stdc++.h>
+#include "bits/stdc++.h"
+
 using namespace std;
 
-#define FOR(i,x,y) for(int i = (x); i<=(y); ++i)
-#define DFOR(i,x,y) for(int i = (x); i>=(y); --i)
-#define db(x) cout<<#x<<" = "<<x<<endl;
-#define maxN 10002
-#define pb push_back
-#define mp make_pair
-#define pf push_front
-#define F first
-#define S second
-#define oo 1e9+7
-#define II pair<int,int>
-#define LL long long
+const int N = 10005;
+const int oo = 1000000007;
+int n, m, a[N], low[N], st, fi, trace[N];
+bool mark[N];
+vector<int> dsk[N], rev[N];
 
-int n,m,s,f,trace[maxN],order[maxN];
-queue<int> q;
-vector<int> dsk[maxN];
-deque<int> path;
+void dfs1(int u) {
+    mark[u] = 1;
+    for (int v : rev[u]) {
+        if (!mark[v]) {
+            dfs1(v);
+            trace[v] = u;
+        }
+    }
+}
 
-void init()
-{
-    #ifndef ONLINE_JUDGE
-        freopen("input.inp", "r", stdin);
-    #endif // ONLINE_JUDGE
-    std::ios::sync_with_stdio(false);
-    scanf("%d%d%d%d", &n, &m, &s, &f);
-    FOR(i,1,m)
-    {
-        int u,v;
+void dfs2(int u) {
+    mark[u] = 1;
+    low[u] = a[u];
+    for (int v : dsk[u]) {
+        if (!mark[v] && !trace[v]) {
+            dfs2(v);
+            low[u] = min(low[u], low[v]);
+        } else {
+            low[u] = min(low[u], a[v]);
+        }
+    }
+}
+
+int main() {
+#ifndef ONLINE_JUDGE
+//    freopen("input.inp", "r", stdin);
+    freopen("input.inp", "r", stdin);
+//    freopen("output.out", "w", stdout);
+#endif // ONLINE_JUDGE
+    scanf("%d %d %d %d", &n, &m, &st, &fi);
+    for (int i = 1; i <= m; ++i) {
+        int u, v;
         scanf("%d%d", &u, &v);
-        dsk[u].pb(v);
-        //dsk[v].pb(u);
+        dsk[u].push_back(v);
+        rev[v].push_back(u);
     }
-}
-
-void bfs(int start)
-{
+    dfs1(fi);
+    vector<int> path;
+    for (int u = st; u != 0; u = trace[u]) {
+        path.push_back(u);
+    }
     memset(trace, 0, sizeof trace);
-    trace[start] = n+1;
-    q = queue<int>();
-    q.push(start);
-    do
-    {
-        int u = q.front();
-        if (u == f) break;
-        q.pop();
-        if (dsk[u].size()>0)
-        FOR(i,0,dsk[u].size()-1)
-        {
-            int v = dsk[u][i];
-            if (trace[v] ==0)
-            {
-                trace[v] = u;
-                q.push(v);
-            }
-        }
-    } while (!q.empty());
-    int x = f;
-    while (x!=n+1 && x!=0)
-    {
-        path.pf(x);
-        x = trace[x];
+    for (int i = 0; i < path.size(); ++i) trace[path[i]] = i + 1 < path.size() ? path[i + 1] : oo;
+    reverse(path.begin(), path.end());
+    for (int i = 0; i < path.size(); ++i) a[path[i]] = i + 1;
+    for (int i = 1; i <= n; ++i) if (a[i] == 0) a[i] = oo;
+    memset(mark, 0, sizeof mark);
+    for (int i = 1; i <= n; ++i) dfs2(i);
+    int Min = oo, ans = 0;
+    for (int i = (int) path.size() - 1; i >= 0; --i) {
+        if (Min >= i + 1) ++ans;
+        Min = min(Min, low[path[i]]);
     }
-    FOR(i,0,path.size()-1) order[path[i]] = i+1;
-}
-
-bool bfs(int start, int exc)
-{
-    FOR(i,1,n) trace[i] = 0;
-    trace[start] = n+1;
-    q = queue<int>();
-    q.push(start);
-    do
-    {
-        int u = q.front();
-        if (order[u]>order[exc]) return true;
-        q.pop();
-        if (dsk[u].size()>0)
-        {
-            FOR(i,0,dsk[u].size()-1)
-            {
-                int v = dsk[u][i];
-                if (trace[v] == 0 && v != exc)
-                {
-                    trace[v] = u;
-                    q.push(v);
-                }
-            }
-        }
-    } while (!q.empty());
-    return false;
-}
-
-int main()
-{
-	init();
-	bfs(s);
-	int ans = 0;
-	FOR(i,1,path.size()-2)
-	{
-	    //db(path[i]);
-	    int temp = bfs(s, path[i]);
-	    //db(temp);
-	    if (temp == 0) s = path[i];
-	    ans += 1-temp;
-	}
-	printf("%d", ans);
+    printf("%d", ans - 2);
+#ifndef ONLINE_JUDGE
+    cout << endl;
+    cerr << "Time elapsed: " << 1.0 * clock() / CLOCKS_PER_SEC << " s.\n";
+#endif
 }
